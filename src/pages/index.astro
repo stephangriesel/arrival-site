@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+import MapIsland from "../components/MapIsland";
+import BottomNav from "../components/BottomNav";
+---
+
+<Layout title="Arrival - Amsterdam">
+	<main class="relative w-full h-full overflow-hidden">
+		<MapIsland client:only="react" />
+		<BottomNav client:load currentPath="/" />
+	</main>
+</Layout>
