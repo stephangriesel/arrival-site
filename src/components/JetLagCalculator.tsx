@@ -1,21 +1,48 @@
 import { useState } from 'react';
 import { Plane, Clock, Sun } from 'lucide-react';
 
+const CITIES = [
+    { name: 'New York (EST)', offset: -5 },
+    { name: 'Los Angeles (PST)', offset: -8 },
+    { name: 'London (GMT)', offset: 0 },
+    { name: 'Paris (CET)', offset: 1 },
+    { name: 'Berlin (CET)', offset: 1 },
+    { name: 'Tokyo (JST)', offset: 9 },
+    { name: 'Sydney (AEDT)', offset: 11 },
+    { name: 'Dubai (GST)', offset: 4 },
+    { name: 'Singapore (SGT)', offset: 8 },
+    { name: 'Hong Kong (HKT)', offset: 8 },
+    { name: 'Cape Town (SAST)', offset: 2 },
+    { name: 'Rio de Janeiro (BRT)', offset: -3 },
+    { name: 'Chicago (CST)', offset: -6 },
+    { name: 'San Francisco (PST)', offset: -8 },
+    { name: 'Toronto (EST)', offset: -5 },
+    { name: 'Vancouver (PST)', offset: -8 },
+    { name: 'Seoul (KST)', offset: 9 },
+    { name: 'Mumbai (IST)', offset: 5.5 },
+    { name: 'Shanghai (CST)', offset: 8 },
+    { name: 'Bangkok (ICT)', offset: 7 },
+];
+
 export default function JetLagCalculator() {
-    const [homeZone, setHomeZone] = useState('EST');
+    const [homeZoneOffset, setHomeZoneOffset] = useState<number>(-5); // Default to NY
     const [landingTime, setLandingTime] = useState('08:00');
     const [recommendation, setRecommendation] = useState<string | null>(null);
 
     const calculateRunWindow = () => {
-        // Simplified logic as requested:
-        // If Home (EST) is behind Destination (AMS - implied context), it's Eastward Travel.
-        // For this MVP, we assume the user is traveling East (e.g. NY to AMS).
+        const amsOffset = 1; // Amsterdam is UTC+1 (Standard)
 
-        if (homeZone === 'EST') {
+        // Eastward travel: Home is behind destination (e.g., NY -5 < AMS +1)
+        if (homeZoneOffset < amsOffset) {
             setRecommendation("Morning Light (10am-2pm)");
-        } else {
-            // Fallback or other logic could go here
-            setRecommendation("Morning Light (10am-2pm)");
+        }
+        // Westward travel: Home is ahead of destination (e.g., Tokyo +9 > AMS +1)
+        else if (homeZoneOffset > amsOffset) {
+            setRecommendation("Afternoon Light (2pm-6pm)");
+        }
+        // Same timezone
+        else {
+            setRecommendation("No major jet lag detected. Run whenever you feel energetic!");
         }
     };
 
@@ -34,13 +61,15 @@ export default function JetLagCalculator() {
                             Home Time Zone
                         </label>
                         <select
-                            value={homeZone}
-                            onChange={(e) => setHomeZone(e.target.value)}
+                            value={homeZoneOffset}
+                            onChange={(e) => setHomeZoneOffset(Number(e.target.value))}
                             className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-text focus:outline-none focus:border-accent transition-colors appearance-none"
                         >
-                            <option value="EST">New York (EST)</option>
-                            <option value="PST">Los Angeles (PST)</option>
-                            <option value="GMT">London (GMT)</option>
+                            {CITIES.map((city) => (
+                                <option key={city.name} value={city.offset}>
+                                    {city.name}
+                                </option>
+                            ))}
                         </select>
                     </div>
 
