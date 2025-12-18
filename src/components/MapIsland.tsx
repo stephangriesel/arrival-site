@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import type { Map as LeafletMap } from 'leaflet';
 import { Locate } from 'lucide-react';
 
 // Route Data
@@ -3753,6 +3754,7 @@ export default function MapIsland() {
     const [isMounted, setIsMounted] = useState(false);
     const [activeRoute, setActiveRoute] = useState<RouteKey>('sanctuary');
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+    const mapRef = useRef<LeafletMap | null>(null);
 
     useEffect(() => {
         setIsMounted(true);
@@ -3776,7 +3778,7 @@ export default function MapIsland() {
                 (position) => {
                     const newLoc: [number, number] = [position.coords.latitude, position.coords.longitude];
                     setUserLocation(newLoc);
-                    // Ideally we would flyTo here, but for now we rely on the user seeing the blue dot
+                    mapRef.current?.flyTo(newLoc, 15);
                 },
                 (error) => console.error("Error locating:", error)
             );
@@ -3792,6 +3794,7 @@ export default function MapIsland() {
     return (
         <div className="h-full w-full absolute top-0 left-0 z-0">
             <MapContainer
+                ref={mapRef}
                 center={currentRoute.center}
                 zoom={currentRoute.zoom}
                 scrollWheelZoom={true}
@@ -3822,12 +3825,12 @@ export default function MapIsland() {
             </MapContainer>
 
             {/* Top Route Controls */}
-            <div className="absolute top-6 left-0 w-full z-[400] flex justify-center space-x-3 px-4 overflow-x-auto">
+            <div className="absolute top-6 left-0 w-full z-[400] flex justify-center space-x-3 px-3 py-4 overflow-x-auto">
                 {(Object.keys(ROUTES) as RouteKey[]).map((key) => (
                     <button
                         key={key}
                         onClick={() => setActiveRoute(key)}
-                        className={`px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md transition-all shadow-lg border ${activeRoute === key
+                        className={`px-6 py-4 rounded-full text-base font-bold backdrop-blur-md transition-all shadow-lg border ${activeRoute === key
                             ? 'bg-white/20 border-white/40 text-white scale-105'
                             : 'bg-black/40 border-white/10 text-white/60 hover:bg-black/60'
                             }`}
