@@ -34,9 +34,13 @@ const ROUTES = {
 
 type RouteKey = keyof typeof ROUTES;
 
-// Component to handle map view updates
-function MapController({ center, zoom }: { center: [number, number], zoom: number }) {
+// Component to handle map view updates and expose instance
+function MapController({ center, zoom, onMapReady }: { center: [number, number], zoom: number, onMapReady: (map: LeafletMap) => void }) {
     const map = useMap();
+    useEffect(() => {
+        onMapReady(map);
+    }, [map, onMapReady]); // Ensure map is registered
+
     useEffect(() => {
         map.setView(center, zoom);
     }, [center, zoom, map]);
@@ -83,15 +87,24 @@ export default function MapIsland() {
     }, [activeRoute]);
 
     const handleLocateMe = () => {
+        if (userLocation && mapRef.current) {
+            mapRef.current.flyTo(userLocation, 15);
+            return;
+        }
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const newLoc: [number, number] = [position.coords.latitude, position.coords.longitude];
                     setUserLocation(newLoc);
-                    mapRef.current?.flyTo(newLoc, 15);
+                    if (mapRef.current) {
+                        mapRef.current.flyTo(newLoc, 15);
+                    }
                 },
                 (error) => console.error("Error locating:", error)
             );
+        } else {
+            alert("Geolocation is not supported by your browser.");
         }
     };
 
@@ -104,14 +117,17 @@ export default function MapIsland() {
     return (
         <div className="h-full w-full absolute top-0 left-0 z-0">
             <MapContainer
-                ref={mapRef}
                 center={currentRoute.center}
                 zoom={currentRoute.zoom}
                 scrollWheelZoom={true}
                 className="h-full w-full"
                 zoomControl={false}
             >
-                <MapController center={currentRoute.center} zoom={currentRoute.zoom} />
+                <MapController
+                    center={currentRoute.center}
+                    zoom={currentRoute.zoom}
+                    onMapReady={(map) => { mapRef.current = map; }}
+                />
 
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -130,6 +146,7 @@ export default function MapIsland() {
                 {/* User Location Marker */}
                 {userLocation && (
                     <CircleMarker
+                        key={`loc-${userLocation[0]}-${userLocation[1]}`}
                         center={userLocation}
                         radius={8}
                         pathOptions={{ color: '#ffffff', fillColor: '#2F80ED', fillOpacity: 1, weight: 2 }}
