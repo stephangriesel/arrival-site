@@ -31,26 +31,27 @@ export default function JetLagCalculator() {
 
     const calculateRunWindow = () => {
         const amsOffset = 1; // Amsterdam is UTC+1 (Standard)
+        const diff = homeZoneOffset - amsOffset;
 
+        // Small timezone difference (≤ 2 hours): No major jet lag
+        if (Math.abs(diff) <= 2) {
+            setRecommendation({
+                action: "No major adjustment needed.",
+                reason: "You are in a similar time zone. Run whenever you feel energetic!"
+            });
+        }
         // Eastward travel: Home is behind destination (e.g., NY -5 < AMS +1)
-        if (homeZoneOffset < amsOffset) {
+        else if (diff < 0) {
             setRecommendation({
                 action: "Seek Morning Light (10am - 2pm)",
                 reason: "Traveling East effectively shortens your day. Exposure to morning light helps advance your circadian rhythm to align with the new earlier time zone."
             });
         }
         // Westward travel: Home is ahead of destination (e.g., Tokyo +9 > AMS +1)
-        else if (homeZoneOffset > amsOffset) {
+        else {
             setRecommendation({
                 action: "Seek Afternoon Light (2pm - 6pm)",
                 reason: "Traveling West effectively lengthens your day. Exposure to afternoon light helps delay your circadian rhythm to align with the new later time zone."
-            });
-        }
-        // Same timezone
-        else {
-            setRecommendation({
-                action: "No major adjustment needed.",
-                reason: "You are in a similar time zone. Run whenever you feel energetic!"
             });
         }
     };
