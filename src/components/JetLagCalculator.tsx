@@ -27,22 +27,31 @@ const CITIES = [
 export default function JetLagCalculator() {
     const [homeZoneOffset, setHomeZoneOffset] = useState<number>(-5); // Default to NY
     const [landingTime, setLandingTime] = useState('08:00');
-    const [recommendation, setRecommendation] = useState<string | null>(null);
+    const [recommendation, setRecommendation] = useState<{ action: string; reason: string } | null>(null);
 
     const calculateRunWindow = () => {
         const amsOffset = 1; // Amsterdam is UTC+1 (Standard)
 
         // Eastward travel: Home is behind destination (e.g., NY -5 < AMS +1)
         if (homeZoneOffset < amsOffset) {
-            setRecommendation("Morning Light (10am-2pm)");
+            setRecommendation({
+                action: "Seek Morning Light (10am - 2pm)",
+                reason: "Traveling East effectively shortens your day. Exposure to morning light helps advance your circadian rhythm to align with the new earlier time zone."
+            });
         }
         // Westward travel: Home is ahead of destination (e.g., Tokyo +9 > AMS +1)
         else if (homeZoneOffset > amsOffset) {
-            setRecommendation("Afternoon Light (2pm-6pm)");
+            setRecommendation({
+                action: "Seek Afternoon Light (2pm - 6pm)",
+                reason: "Traveling West effectively lengthens your day. Exposure to afternoon light helps delay your circadian rhythm to align with the new later time zone."
+            });
         }
         // Same timezone
         else {
-            setRecommendation("No major jet lag detected. Run whenever you feel energetic!");
+            setRecommendation({
+                action: "No major adjustment needed.",
+                reason: "You are in a similar time zone. Run whenever you feel energetic!"
+            });
         }
     };
 
@@ -98,9 +107,14 @@ export default function JetLagCalculator() {
                     <div className="mt-8 p-4 bg-accent/10 border border-accent/20 rounded-xl animate-fade-in">
                         <div className="flex items-start">
                             <Sun className="w-6 h-6 text-accent mr-3 mt-1 flex-shrink-0" />
-                            <p className="text-accent font-medium leading-relaxed">
-                                {recommendation}
-                            </p>
+                            <div className="flex flex-col">
+                                <p className="text-accent font-bold text-lg mb-2">
+                                    {recommendation.action}
+                                </p>
+                                <p className="text-text/80 text-sm leading-relaxed">
+                                    {recommendation.reason}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 )}
